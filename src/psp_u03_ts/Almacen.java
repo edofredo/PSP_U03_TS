@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -22,22 +23,29 @@ import util.Operacion;
 public class Almacen extends Thread{
     
     private int chirimoyas;
-
+    ServerSocket socket;
+    
     public Almacen() {
         Thread hiloConexion = new Thread(this,"hiloConexion");
+        try {
+            socket = new ServerSocket(5000);
+        } catch (IOException ex) {
+            Logger.getLogger(Almacen.class.getName()).log(Level.SEVERE, null, ex);
+        }
         hiloConexion.start();
-        chirimoyas = Integer.parseInt(JOptionPane.showInputDialog("Inserta el stock de chirimoyas"));
+        chirimoyas = 100;
+        consultarStock();
     }
     
     @Override
     public void run(){
         try {
             boolean salir = false;
-            ServerSocket socket = new ServerSocket(5000);
             Socket skTienda = socket.accept();
+            System.out.println("Tienda conectada\n");
             
             while(!salir){
-                System.out.println("Entra en while");
+               
                 ObjectInputStream recibir = 
                         new ObjectInputStream(skTienda.getInputStream());
                 
@@ -48,28 +56,34 @@ public class Almacen extends Thread{
                 
                 try {
                     op = (Operacion) recibir.readObject();
-                    System.out.println(op.toString());
                 } catch (ClassNotFoundException ex) {
-                    System.out.println("Error al leer el objeto");;
+                    System.out.println("Error al leer el objeto");
                 }
                 
                 String tipoOp = op.getOperacion();
 
                 switch (tipoOp) {
                     case "insertar":
-                        System.out.println("Recibido insertar\n");
-                        System.out.println("Numero de unidades" + op.getCantidad() + "\n");
-                        
+                        int nuevas = op.getCantidad();
+                        System.out.println("Se ha recibido orden de insertar "+ nuevas+".\n");
+                        chirimoyas = chirimoyas + nuevas;
+                        System.out.println("Total chirimoyas en almacen"+ chirimoyas +".\n");
                         break;
                     case "retirar":
-                        System.out.println("Recibido retirar");
+                        int retirar = op.getCantidad();
+                        System.out.println("Se ha recibido orden de retirar "+ retirar+".\n");
+                        chirimoyas = chirimoyas + retirar;
+                        System.out.println("Total chirimoyas en almacen"+ chirimoyas +".\n");
                         break;
                     case "consultar":
-                        System.out.println("Recibido consultar");
+                        System.out.println("Se ha recibido orden de consultar el stock.\n");
+                        System.out.println("Total chirimoyas en almacen"+ chirimoyas +".\n");
                         break;
                     case "salir":
-                        System.out.println("Recibido salir");
                         salir = true;
+                        System.out.println("Recibido salir. Adiós");
+                        salir = true;
+                        System.exit(0);
                         break;
                     default:
                         break;
@@ -84,9 +98,14 @@ public class Almacen extends Thread{
          
     }
     
-    
-    public void gestionOperacion(){
-        
+    private void consultarStock(){
+       while(true){
+           System.out.println("Para consultar stock escribir 'c + Enter' en cualquier momento");
+           Scanner sc = new Scanner(System.in);
+           if(sc.nextLine().equalsIgnoreCase("c")){
+              System.out.println("Total chirimoyas en almacen"+ chirimoyas +".\n"); 
+           }
+       }
     }
     
     public int getChirimoyas() {
