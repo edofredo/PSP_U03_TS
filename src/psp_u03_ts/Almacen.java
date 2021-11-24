@@ -12,6 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import util.Operacion;
 
 /**
@@ -25,6 +26,7 @@ public class Almacen extends Thread{
     public Almacen() {
         Thread hiloConexion = new Thread(this,"hiloConexion");
         hiloConexion.start();
+        chirimoyas = Integer.parseInt(JOptionPane.showInputDialog("Inserta el stock de chirimoyas"));
     }
     
     @Override
@@ -32,28 +34,32 @@ public class Almacen extends Thread{
         try {
             boolean salir = false;
             ServerSocket socket = new ServerSocket(5000);
-            Socket tienda = socket.accept();
+            Socket skTienda = socket.accept();
             
             while(!salir){
+                System.out.println("Entra en while");
                 ObjectInputStream recibir = 
-                        new ObjectInputStream(tienda.getInputStream());
+                        new ObjectInputStream(skTienda.getInputStream());
                 
                 ObjectOutputStream enviar = 
-                        new ObjectOutputStream(tienda.getOutputStream());
+                        new ObjectOutputStream(skTienda.getOutputStream());
                 
                 Operacion op = null;
                 
                 try {
-                    op = (Operacion) recibir.readObject();               
+                    op = (Operacion) recibir.readObject();
+                    System.out.println(op.toString());
                 } catch (ClassNotFoundException ex) {
                     System.out.println("Error al leer el objeto");;
                 }
                 
                 String tipoOp = op.getOperacion();
-                
-                switch(tipoOp){
-                    case "insertar":                
-                        System.out.println("Recibido insertar");
+
+                switch (tipoOp) {
+                    case "insertar":
+                        System.out.println("Recibido insertar\n");
+                        System.out.println("Numero de unidades" + op.getCantidad() + "\n");
+                        
                         break;
                     case "retirar":
                         System.out.println("Recibido retirar");
@@ -66,8 +72,8 @@ public class Almacen extends Thread{
                         salir = true;
                         break;
                     default:
-                        break;                       
-                        
+                        break;
+
                 }
    
             }
